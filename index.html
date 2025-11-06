@@ -3,117 +3,97 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BnM Lenswork | Photography & Ice Run</title>
+  <title>BnM Lenswork</title>
   <link rel="stylesheet" href="style.css" />
-  <!-- ✅ Load Three.js before our script -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
 </head>
-
 <body>
-  <!-- ===== Navbar ===== -->
+  <!-- HEADER / NAVBAR -->
   <header>
-    <nav class="navbar">
-      <div class="logo">BnM <span>Lenswork</span></div>
+    <div class="navbar">
+      <div class="logo">BnM<span>Lenswork</span></div>
+
       <ul class="nav-links">
         <li><a href="#home">Home</a></li>
         <li><a href="#gallery">Gallery</a></li>
         <li><a href="#about">About</a></li>
         <li><a href="#contact">Contact</a></li>
+        <li><a href="#games">Games</a></li>
       </ul>
-    </nav>
+
+      <!-- Mobile Menu Button -->
+      <div class="menu-toggle">☰</div>
+    </div>
   </header>
 
-  <!-- ===== Hero Section ===== -->
-  <section id="home" class="hero">
-    <div class="hero-content">
-      <h1>Capturing Moments, Creating Stories</h1>
-      <p>Through the lens of passion and creativity</p>
-      <a href="#gallery" class="btn">View Gallery</a>
-    </div>
+  <!-- HERO SECTION -->
+  <section class="hero" id="home">
+    <h1>Welcome to BnM Lenswork</h1>
+    <p>Capturing life’s most beautiful moments through our lens 📸</p>
+    <a href="#gallery" class="btn">Explore Gallery</a>
   </section>
 
-  <!-- ===== Gallery ===== -->
-  <section id="gallery" class="gallery">
-    <h2>Photography Showcase</h2>
+  <!-- GALLERY SECTION -->
+  <section class="gallery" id="gallery">
+    <h2>Our Work</h2>
     <div class="gallery-grid">
-      <img src="images/photo1.jpg" alt="Gallery 1" />
-      <img src="images/photo2.jpg" alt="Gallery 2" />
-      <img src="images/photo3.jpg" alt="Gallery 3" />
-      <img src="images/photo4.jpg" alt="Gallery 4" />
+      <img src="https://picsum.photos/400/250?random=1" alt="photo1" />
+      <img src="https://picsum.photos/400/250?random=2" alt="photo2" />
+      <img src="https://picsum.photos/400/250?random=3" alt="photo3" />
+      <img src="https://picsum.photos/400/250?random=4" alt="photo4" />
     </div>
   </section>
 
-  <!-- ===== About ===== -->
-  <section id="about" class="about">
-    <h2>About BnM Lenswork</h2>
-    <p>BnM Lenswork captures life’s most beautiful moments — portraits, landscapes, and creative motion shots.</p>
+  <!-- ABOUT SECTION -->
+  <section class="about" id="about">
+    <h2>About Us</h2>
+    <p>
+      BnM Lenswork is a creative photography team dedicated to storytelling through visuals. 
+      Whether it’s nature, people, or art — we capture beauty in every frame.
+    </p>
   </section>
 
-  <!-- ===== Contact ===== -->
-  <section id="contact" class="contact">
+  <!-- CONTACT SECTION -->
+  <section class="contact" id="contact">
     <h2>Contact</h2>
-    <p>📧 Email: <a href="mailto:bnmlenswork@gmail.com">bnmlenswork@gmail.com</a></p>
-    <p>📸 Instagram: <a href="https://instagram.com" target="_blank">@bnmlenswork</a></p>
+    <p>📧 Email us at <a href="mailto:info@bnmlenswork.com">info@bnmlenswork.com</a></p>
+    <p>📷 Follow us on Instagram: <a href="#">@bnmlenswork</a></p>
   </section>
 
-  <!-- ===== Footer ===== -->
+  <!-- 🎮 GAME BUTTON -->
+  <button class="game-button" id="openGames">🎮</button>
+
+  <!-- GAME POPUP -->
+  <div class="game-overlay" id="gameOverlay">
+    <button class="close-btn" id="closeGames">&times;</button>
+    <iframe src="https://games.crazygames.com/en_US/mini-militia/index.html" frameborder="0"></iframe>
+  </div>
+
+  <!-- FOOTER -->
   <footer>
     <p>© 2025 BnM Lenswork | All Rights Reserved</p>
   </footer>
 
-  <!-- ===== Game Button + Overlay ===== -->
-  <button id="openGame" class="game-button">🎮</button>
-
-  <div id="gameOverlay" class="game-overlay">
-    <button id="closeGame" class="close-btn">✖</button>
-    <canvas id="gameCanvas"></canvas>
-  </div>
-
-  <!-- ===== Game Script ===== -->
+  <!-- 📱 MOBILE MENU SCRIPT -->
   <script>
-    const openBtn = document.getElementById('openGame');
-    const closeBtn = document.getElementById('closeGame');
-    const overlay = document.getElementById('gameOverlay');
-    let scene, camera, renderer, cube, animationId;
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navLinks = document.querySelector('.nav-links');
 
-    openBtn.onclick = () => {
-      overlay.style.display = 'flex';
-      initGame();
-    };
+    menuToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('show');
+    });
 
-    closeBtn.onclick = () => {
-      overlay.style.display = 'none';
-      cancelAnimationFrame(animationId);
-      if (renderer) renderer.dispose();
-    };
+    // 🎮 Game Popup Controls
+    const openGames = document.getElementById('openGames');
+    const closeGames = document.getElementById('closeGames');
+    const gameOverlay = document.getElementById('gameOverlay');
 
-    function initGame() {
-      const canvas = document.getElementById('gameCanvas');
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-      renderer = new THREE.WebGLRenderer({ canvas });
-      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-      renderer.setClearColor(0x1b1b1b);
+    openGames.addEventListener('click', () => {
+      gameOverlay.style.display = 'flex';
+    });
 
-      const geometry = new THREE.BoxGeometry();
-      const material = new THREE.MeshStandardMaterial({ color: 0x00b4d8 });
-      cube = new THREE.Mesh(geometry, material);
-      scene.add(cube);
-
-      const light = new THREE.PointLight(0xffffff, 1);
-      light.position.set(5, 5, 5);
-      scene.add(light);
-
-      camera.position.z = 3;
-
-      function animate() {
-        animationId = requestAnimationFrame(animate);
-        cube.rotation.x += 0.02;
-        cube.rotation.y += 0.02;
-        renderer.render(scene, camera);
-      }
-      animate();
-    }
+    closeGames.addEventListener('click', () => {
+      gameOverlay.style.display = 'none';
+    });
   </script>
 </body>
 </html>
