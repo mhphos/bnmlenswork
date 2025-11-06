@@ -62,10 +62,10 @@
   <!-- 🎮 GAME BUTTON -->
   <button class="game-button" id="openGames">🎮</button>
 
-  <!-- GAME POPUP -->
+  <!-- GAME POPUP (FIXED: POINTS TO LOCAL ICE RUN) -->
   <div class="game-overlay" id="gameOverlay">
     <button class="close-btn" id="closeGames">&times;</button>
-    <iframe src="https://games.crazygames.com/en_US/mini-militia/index.html" frameborder="0"></iframe>
+    <iframe src="games/ice-run/index.html" frameborder="0"></iframe>
   </div>
 
   <!-- FOOTER -->
@@ -73,8 +73,9 @@
     <p>© 2025 BnM Lenswork | All Rights Reserved</p>
   </footer>
 
-  <!-- 📱 MOBILE MENU SCRIPT -->
+  <!-- 📱 MOBILE MENU + GAME POPUP SCRIPT -->
   <script>
+    // Mobile Menu
     const menuToggle = document.querySelector('.menu-toggle');
     const navLinks = document.querySelector('.nav-links');
 
