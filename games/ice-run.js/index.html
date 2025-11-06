@@ -1,154 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Ice Run</title>
-    <style>
-        body { margin: 0; padding: 0; background: linear-gradient(#87CEEB, #E0F6FF); }
-        #gameContainer { position: relative; width: 100%; height: 100vh; }
-        #score { position: absolute; top: 20px; left: 20px; font-size: 24px; color: white; font-family: Arial; }
-        #instructions { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-                       background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; 
-                       text-align: center; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ice Run</title>
+  <link rel="stylesheet" href="../../style.css">
+  <style>
+    #gameArea {
+      position: relative;
+      width: 400px;
+      height: 600px;
+      margin: 50px auto;
+      background: #a0e7ff;
+      overflow: hidden;
+      border: 3px solid #3b2f2f;
+      border-radius: 12px;
+    }
+    #player {
+      position: absolute;
+      bottom: 0;
+      left: 175px;
+      width: 50px;
+      height: 50px;
+      background: #ff5c5c;
+    }
+    .obstacle {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      background: #111;
+    }
+  </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <div id="score">Score: 0</div>
-        <div id="instructions">
-            <h2>Ice Run</h2>
-            <p>Use LEFT/RIGHT arrows to avoid obstacles</p>
-            <p>Collect coins for points!</p>
-            <button onclick="startGame()">Start Game</button>
-        </div>
-        <canvas id="gameCanvas"></canvas>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script>
-        let scene, camera, renderer, player, obstacles = [], coins = [];
-        let score = 0, gameStarted = false;
-        const playerSpeed = 0.2;
-
-        function init() {
-            // Scene setup
-            scene = new THREE.Scene();
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-
-            // Create ice track
-            const trackGeometry = new THREE.PlaneGeometry(10, 100);
-            const trackMaterial = new THREE.MeshBasicMaterial({ color: 0x88ccff, side: THREE.DoubleSide });
-            const track = new THREE.Mesh(trackGeometry, trackMaterial);
-            track.rotation.x = Math.PI / 2;
-            track.position.y = -1;
-            scene.add(track);
-
-            // Create player (snowboard)
-            const playerGeometry = new THREE.BoxGeometry(0.5, 0.1, 1);
-            const playerMaterial = new THREE.MeshBasicMaterial({ color: 0xff4444 });
-            player = new THREE.Mesh(playerGeometry, playerMaterial);
-            player.position.z = 5;
-            scene.add(player);
-
-            camera.position.set(0, 5, 10);
-            camera.lookAt(0, 0, 0);
-
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 20, 10);
-            scene.add(directionalLight);
-        }
-
-        function startGame() {
-            document.getElementById('instructions').style.display = 'none';
-            gameStarted = true;
-            score = 0;
-            animate();
-        }
-
-        function createObstacle() {
-            const geometry = new THREE.BoxGeometry(1, 1, 1);
-            const material = new THREE.MeshBasicMaterial({ color: 0x666666 });
-            const obstacle = new THREE.Mesh(geometry, material);
-            obstacle.position.x = (Math.random() - 0.5) * 8;
-            obstacle.position.z = -50;
-            scene.add(obstacle);
-            obstacles.push(obstacle);
-        }
-
-        function createCoin() {
-            const geometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16);
-            const material = new THREE.MeshBasicMaterial({ color: 0xffd700 });
-            const coin = new THREE.Mesh(geometry, material);
-            coin.position.x = (Math.random() - 0.5) * 8;
-            coin.position.z = -50;
-            coin.rotation.x = Math.PI / 2;
-            scene.add(coin);
-            coins.push(coin);
-        }
-
-        function animate() {
-            if (!gameStarted) return;
-
-            requestAnimationFrame(animate);
-
-            // Move obstacles and coins
-            obstacles.forEach((obs, index) => {
-                obs.position.z += 0.3;
-                if (obs.position.z > 10) {
-                    scene.remove(obs);
-                    obstacles.splice(index, 1);
-                }
-            });
-
-            coins.forEach((coin, index) => {
-                coin.position.z += 0.3;
-                coin.rotation.y += 0.1;
-                if (coin.position.z > 10) {
-                    scene.remove(coin);
-                    coins.splice(index, 1);
-                }
-                
-                // Check coin collection
-                if (Math.abs(coin.position.x - player.position.x) < 0.8 && 
-                    Math.abs(coin.position.z - player.position.z) < 1) {
-                    scene.remove(coin);
-                    coins.splice(index, 1);
-                    score += 10;
-                    document.getElementById('score').textContent = 'Score: ' + score;
-                }
-            });
-
-            // Randomly create obstacles and coins
-            if (Math.random() < 0.02) createObstacle();
-            if (Math.random() < 0.01) createCoin();
-
-            renderer.render(scene, camera);
-        }
-
-        // Keyboard controls
-        document.addEventListener('keydown', (event) => {
-            if (!gameStarted) return;
-            
-            if (event.key === 'ArrowLeft' && player.position.x > -4) {
-                player.position.x -= playerSpeed;
-            }
-            if (event.key === 'ArrowRight' && player.position.x < 4) {
-                player.position.x += playerSpeed;
-            }
-        });
-
-        // Handle resize
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        init();
-    </script>
+  <div id="gameArea">
+    <div id="player"></div>
+  </div>
+  <script src="game.js"></script>
 </body>
 </html>
