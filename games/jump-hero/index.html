@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jump Hero</title>
+    <style>
+        body { margin: 0; padding: 0; background: #000; }
+        #ui { position: absolute; top: 20px; left: 20px; color: white; font-family: Arial; z-index: 100; }
+        #instructions { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                       background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; 
+                       text-align: center; }
+        button { 
+            background: #4CAF50; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-size: 16px; 
+        }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div>Score: <span id="score">0</span></div>
+        <div>Coins: <span id="coins">0</span></div>
+    </div>
+    <div id="instructions">
+        <h2>Jump Hero</h2>
+        <p>Use LEFT/RIGHT arrows to move</p>
+        <p>SPACEBAR to jump</p>
+        <p>Collect coins and avoid gaps!</p>
+        <button onclick="startGame()">Start Adventure</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, player, platforms = [], coins = [];
+        let score = 0, coinsCollected = 0, gameStarted = false;
+        const gravity = -0.01;
+        let velocityY = 0;
+        let isOnGround = false;
+        const keys = {};
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Create initial platforms
+            createPlatform(0, -2, 5);
+            createPlatform(6, -2, 3);
+            createPlatform(10, -1, 4);
+            createPlatform(15, -3, 3);
+
+            // Create player
+            const playerGeometry = new THREE.BoxGeometry(0.5, 1, 0.5);
+            const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            player = new THREE.Mesh(playerGeometry, playerMaterial);
+            player.position.y = 0;
+            scene.add(player);
+
+            camera.position.set(0, 0, 10);
+            camera.lookAt(0, 0, 0);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 20, 10);
+            scene.add(directionalLight);
+
+            // Create some coins
+            createCoin(3, 0);
+            createCoin(8, 1);
+            createCoin(13, 0);
+        }
+
+        function createPlatform(x, y, width) {
+            const geometry = new THREE.BoxGeometry(width, 0.5, 1);
+            const material = new THREE.MeshBasicMaterial({ color: 0x888888 });
+            const platform = new THREE.Mesh(geometry, material);
+            platform.position.set(x, y, 0);
+            platforms.push(platform);
+            scene.add(platform);
+        }
+
+        function createCoin(x, y) {
+            const geometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 16);
+            const material = new THREE.MeshBasicMaterial({ color: 0xffd700 });
+            const coin = new THREE.Mesh(geometry, material);
+            coin.position.set(x, y, 0);
+            coin.rotation.x = Math.PI / 2;
+            coins.push(coin);
+            scene.add(coin);
+        }
+
+        function startGame() {
+            document.getElementById('instructions').style.display = 'none';
+            gameStarted = true;
+            score = 0;
+            coinsCollected = 0;
+            updateUI();
+            animate();
+        }
+
+        function animate() {
+            if (!gameStarted) return;
+
+            requestAnimationFrame(animate);
+
+            // Apply gravity
+            velocityY += gravity;
+            player.position.y += velocityY;
+
+            // Handle movement
+            if (keys['ArrowLeft']) {
+                player.position.x -= 0.1;
+            }
+            if (keys['ArrowRight']) {
+                player.position.x += 0.1;
+            }
+
+            // Check platform collisions
+            isOnGround = false;
+            platforms.forEach(platform => {
+                const platformTop = platform.position.y + 0.25;
+                const platformLeft = platform.position.x - platform.geometry.parameters.width / 2;
+                const platformRight = platform.position.x + platform.geometry.parameters.width / 2;
+
+                if (player.position.y <= platformTop + 0.5 &&
+                    player.position.y >= platformTop &&
+                    player.position.x >= platformLeft &&
+                    player.position.x <= platformRight) {
+                    player.position.y = platformTop + 0.5;
+                    velocityY = 0;
+                    isOnGround = true;
+                }
+            });
+
+            // Check coin collection
+            coins.forEach((coin, index) => {
+                if (player.position.distanceTo(coin.position) < 1) {
+                    scene.remove(coin);
+                    coins.splice(index, 1);
+                    coinsCollected++;
+                    score += 100;
+                    updateUI();
+                }
+            });
+
+            // Move camera with player
+            camera.position.x = player.position.x;
+
+            // Game over if player falls
+            if (player.position.y < -10) {
+                gameStarted = false;
+                document.getElementById('instructions').style.display = 'block';
+                document.getElementById('instructions').innerHTML = `
+                    <h2>Game Over!</h2>
+                    <p>Final Score: ${score}</p>
+                    <p>Coins Collected: ${coinsCollected}</p>
+                    <button onclick="startGame()">Play Again</button>
+                `;
+                // Reset player position
+                player.position.set(0, 0, 0);
+                velocityY = 0;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('coins').textContent = coinsCollected;
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (event) => {
+            keys[event.key] = true;
+            
+            if (event.key === ' ' && isOnGround) {
+                velocityY = 0.3; // Jump
+            }
+        });
+        
+        document.addEventListener('keyup', (event) => {
+            keys[event.key] = false;
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize the game
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fruit Slice</title>
+    <style>
+        body { margin: 0; padding: 0; background: linear-gradient(#87CEEB, #E0F6FF); }
+        #ui { position: absolute; top: 20px; left: 20px; color: white; font-family: Arial; z-index: 100; 
+              background: rgba(0,0,0,0.5); padding: 10px; border-radius: 5px; }
+        #instructions { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                       background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; 
+                       text-align: center; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div>Score: <span id="score">0</span></div>
+        <div>Time: <span id="time">60</span>s</div>
+    </div>
+    <div id="instructions">
+        <h2>Fruit Slice</h2>
+        <p>Slice the fruits with your mouse!</p>
+        <p>Avoid the bombs (black spheres)</p>
+        <button onclick="startGame()">Start Slicing</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, fruits = [], bombs = [], slices = [];
+        let score = 0, timeLeft = 60, gameStarted = false;
+        const mouse = new THREE.Vector2();
+        const raycaster = new THREE.Raycaster();
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Create background
+            const backgroundGeometry = new THREE.PlaneGeometry(20, 20);
+            const backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0x87CEEB });
+            const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial);
+            background.position.z = -10;
+            scene.add(background);
+
+            camera.position.z = 10;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            scene.add(directionalLight);
+        }
+
+        function startGame() {
+            document.getElementById('instructions').style.display = 'none';
+            gameStarted = true;
+            score = 0;
+            timeLeft = 60;
+            updateUI();
+            gameLoop();
+            countdown();
+        }
+
+        function createFruit() {
+            const fruitTypes = [
+                { color: 0xff0000, size: 0.5 }, // Apple
+                { color: 0xffff00, size: 0.6 }, // Lemon
+                { color: 0xffa500, size: 0.7 }  // Orange
+            ];
+            
+            const type = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+            const geometry = new THREE.SphereGeometry(type.size, 16, 16);
+            const material = new THREE.MeshBasicMaterial({ color: type.color });
+            const fruit = new THREE.Mesh(geometry, material);
+            
+            fruit.position.x = (Math.random() - 0.5) * 15;
+            fruit.position.y = -10;
+            fruit.velocity = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.1,
+                Math.random() * 0.2 + 0.1,
+                0
+            );
+            
+            fruits.push(fruit);
+            scene.add(fruit);
+        }
+
+        function createBomb() {
+            const geometry = new THREE.SphereGeometry(0.6, 16, 16);
+            const material = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            const bomb = new THREE.Mesh(geometry, material);
+            
+            bomb.position.x = (Math.random() - 0.5) * 15;
+            bomb.position.y = -10;
+            bomb.velocity = new THREE.Vector3(
+                (Math.random() - 0.5) * 0.1,
+                Math.random() * 0.2 + 0.1,
+                0
+            );
+            
+            bombs.push(bomb);
+            scene.add(bomb);
+        }
+
+        function gameLoop() {
+            if (!gameStarted) return;
+
+            requestAnimationFrame(gameLoop);
+
+            // Update fruits
+            fruits.forEach((fruit, index) => {
+                fruit.position.add(fruit.velocity);
+                fruit.rotation.x += 0.02;
+                fruit.rotation.y += 0.02;
+
+                if (fruit.position.y > 10) {
+                    scene.remove(fruit);
+                    fruits.splice(index, 1);
+                }
+            });
+
+            // Update bombs
+            bombs.forEach((bomb, index) => {
+                bomb.position.add(bomb.velocity);
+                if (bomb.position.y > 10) {
+                    scene.remove(bomb);
+                    bombs.splice(index, 1);
+                }
+            });
+
+            // Random spawn
+            if (Math.random() < 0.05) createFruit();
+            if (Math.random() < 0.01) createBomb();
+
+            renderer.render(scene, camera);
+        }
+
+        function countdown() {
+            const timer = setInterval(() => {
+                if (!gameStarted) {
+                    clearInterval(timer);
+                    return;
+                }
+                
+                timeLeft--;
+                document.getElementById('time').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    gameStarted = false;
+                    document.getElementById('instructions').style.display = 'block';
+                    document.getElementById('instructions').innerHTML = `
+                        <h2>Game Over!</h2>
+                        <p>Final Score: ${score}</p>
+                        <button onclick="startGame()">Play Again</button>
+                    `;
+                    clearInterval(timer);
+                }
+            }, 1000);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('time').textContent = timeLeft;
+        }
+
+        // Mouse interaction for slicing
+        document.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        document.addEventListener('click', () => {
+            if (!gameStarted) return;
+
+            raycaster.setFromCamera(mouse, camera);
+            
+            // Check fruit intersection
+            const fruitIntersects = raycaster.intersectObjects(fruits);
+            if (fruitIntersects.length > 0) {
+                const fruit = fruitIntersects[0].object;
+                scene.remove(fruit);
+                fruits = fruits.filter(f => f !== fruit);
+                score += 10;
+                updateUI();
+            }
+
+            // Check bomb intersection
+            const bombIntersects = raycaster.intersectObjects(bombs);
+            if (bombIntersects.length > 0) {
+                const bomb = bombIntersects[0].object;
+                scene.remove(bomb);
+                bombs = bombs.filter(b => b !== bomb);
+                score = Math.max(0, score - 50);
+                updateUI();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>

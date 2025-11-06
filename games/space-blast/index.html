@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Space Blast</title>
+    <style>
+        body { margin: 0; padding: 0; background: #000; }
+        #ui { position: absolute; top: 20px; left: 20px; color: white; font-family: Arial; z-index: 100; }
+        #instructions { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                       background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; 
+                       text-align: center; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div>Score: <span id="score">0</span></div>
+        <div>Lives: <span id="lives">3</span></div>
+    </div>
+    <div id="instructions">
+        <h2>Space Blast</h2>
+        <p>Use LEFT/RIGHT arrows to move</p>
+        <p>SPACEBAR to shoot aliens</p>
+        <button onclick="startGame()">Start Mission</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, player, aliens = [], bullets = [];
+        let score = 0, lives = 3, gameStarted = false;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // Create player ship
+            const playerGeometry = new THREE.ConeGeometry(0.5, 1, 3);
+            const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            player = new THREE.Mesh(playerGeometry, playerMaterial);
+            player.rotation.x = Math.PI;
+            player.position.y = -8;
+            scene.add(player);
+
+            // Create alien formation
+            createAliens();
+
+            camera.position.z = 15;
+
+            // Stars background
+            for (let i = 0; i < 1000; i++) {
+                const starGeometry = new THREE.SphereGeometry(0.05, 8, 8);
+                const starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                const star = new THREE.Mesh(starGeometry, starMaterial);
+                star.position.set(
+                    Math.random() * 100 - 50,
+                    Math.random() * 100 - 50,
+                    Math.random() * 100 - 50
+                );
+                scene.add(star);
+            }
+        }
+
+        function createAliens() {
+            for (let x = -4; x <= 4; x += 2) {
+                for (let y = 0; y < 3; y++) {
+                    const alienGeometry = new THREE.OctahedronGeometry(0.5);
+                    const alienMaterial = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+                    const alien = new THREE.Mesh(alienGeometry, alienMaterial);
+                    alien.position.set(x, y * 1.5 + 2, 0);
+                    aliens.push(alien);
+                    scene.add(alien);
+                }
+            }
+        }
+
+        function startGame() {
+            document.getElementById('instructions').style.display = 'none';
+            gameStarted = true;
+            score = 0;
+            lives = 3;
+            updateUI();
+            animate();
+        }
+
+        function shoot() {
+            const bulletGeometry = new THREE.SphereGeometry(0.1);
+            const bulletMaterial = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+            const bullet = new THREE.Mesh(bulletGeometry, bulletMaterial);
+            bullet.position.copy(player.position);
+            bullet.position.y += 1;
+            bullets.push(bullet);
+            scene.add(bullet);
+        }
+
+        function animate() {
+            if (!gameStarted) return;
+
+            requestAnimationFrame(animate);
+
+            // Move bullets
+            bullets.forEach((bullet, index) => {
+                bullet.position.y += 0.5;
+                if (bullet.position.y > 10) {
+                    scene.remove(bullet);
+                    bullets.splice(index, 1);
+                }
+
+                // Check collision with aliens
+                aliens.forEach((alien, alienIndex) => {
+                    if (bullet.position.distanceTo(alien.position) < 1) {
+                        scene.remove(bullet);
+                        scene.remove(alien);
+                        bullets.splice(index, 1);
+                        aliens.splice(alienIndex, 1);
+                        score += 100;
+                        updateUI();
+                    }
+                });
+            });
+
+            // Move aliens
+            aliens.forEach(alien => {
+                alien.position.x += Math.sin(Date.now() * 0.001) * 0.02;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('lives').textContent = lives;
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (!gameStarted) return;
+            
+            if (event.key === 'ArrowLeft' && player.position.x > -8) {
+                player.position.x -= 0.5;
+            }
+            if (event.key === 'ArrowRight' && player.position.x < 8) {
+                player.position.x += 0.5;
+            }
+            if (event.key === ' ') {
+                shoot();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
+    </script>
+</body>
+</html>

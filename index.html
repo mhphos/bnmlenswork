@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BnM Lenswork | Photography & Ice Run</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Three.js for 3D game -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.min.js"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <header>
+    <nav class="navbar">
+      <div class="logo">BnM <span>Lenswork</span></div>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero">
+    <div class="hero-content">
+      <h1>Capturing Moments, Creating Stories</h1>
+      <p>Through the lens of passion and creativity</p>
+      <a href="#gallery" class="btn">View Gallery</a>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section id="gallery" class="gallery">
+    <h2>Photography Showcase</h2>
+    <div class="gallery-grid">
+      <img src="images/photo1.jpg" alt="Gallery Image 1">
+      <img src="images/photo2.jpg" alt="Gallery Image 2">
+      <img src="images/photo3.jpg" alt="Gallery Image 3">
+      <img src="images/photo4.jpg" alt="Gallery Image 4">
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="about" class="about">
+    <h2>About BnM Lenswork</h2>
+    <p>BnM Lenswork captures life’s most beautiful moments — from portraits and landscapes to creative projects and motion shots.</p>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="contact">
+    <h2>Contact</h2>
+    <p>📧 Email: <a href="mailto:bnmlenswork@gmail.com">bnmlenswork@gmail.com</a></p>
+    <p>📸 Instagram: <a href="https://instagram.com" target="_blank">@bnmlenswork</a></p>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 BnM Lenswork | All Rights Reserved</p>
+  </footer>
+
+  <!-- Game Button -->
+  <button id="openGame" class="game-button">🎮</button>
+
+  <!-- Game Overlay -->
+  <div id="gameOverlay" class="game-overlay">
+    <button id="closeGame" class="close-btn">✖</button>
+    <canvas id="gameCanvas"></canvas>
+  </div>
+
+  <script>
+    const openBtn = document.getElementById('openGame');
+    const closeBtn = document.getElementById('closeGame');
+    const overlay = document.getElementById('gameOverlay');
+
+    openBtn.onclick = () => {
+      overlay.style.display = 'flex';
+      initGame();
+    };
+
+    closeBtn.onclick = () => {
+      overlay.style.display = 'none';
+      cancelAnimationFrame(animationId);
+    };
+
+    // Basic 3D setup
+    let scene, camera, renderer, cube, animationId;
+    function initGame() {
+      const canvas = document.getElementById('gameCanvas');
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+      renderer = new THREE.WebGLRenderer({ canvas });
+      renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+      renderer.setClearColor(0x1b1b1b);
+
+      const geometry = new THREE.BoxGeometry();
+      const material = new THREE.MeshStandardMaterial({ color: 0x00b4d8 });
+      cube = new THREE.Mesh(geometry, material);
+      scene.add(cube);
+
+      const light = new THREE.PointLight(0xffffff, 1);
+      light.position.set(5, 5, 5);
+      scene.add(light);
+
+      camera.position.z = 3;
+
+      function animate() {
+        animationId = requestAnimationFrame(animate);
+        cube.rotation.x += 0.02;
+        cube.rotation.y += 0.02;
+        renderer.render(scene, camera);
+      }
+      animate();
+    }
+  </script>
+</body>
+</html>
