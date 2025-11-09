@@ -239,20 +239,25 @@ footer {
   }
 
   .nav-links {
-    display: none;
-    flex-direction: column;
-    background-image:url('https://i.imgur.https://www.transparenttextures.com/patterns/wood-pattern.png/MuX09Rt.jpg');
-    position: absolute;
-    color: #f5deb3;
-    background-size: cover;
-    background-repeat: no-repeat;
-    top: 100%;
-    right: 0;
-    width: 200px;
-    text-align: right;
-    padding: 1rem;
-    border-radius: 10px 0 0 10px;
-  }
+  display: none;
+  flex-direction: column;
+  background-color: #b07329; /* Your signature warm gold color */
+  background-image: url('https://www.transparenttextures.com/patterns/dark-wood.png'); /* Correct wood texture */
+  background-size: cover;
+  background-repeat: repeat;
+  background-blend-mode: multiply; /* makes the color blend naturally with the texture */
+  color: #f5deb3; /* light beige text */
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 200px;
+  text-align: right;
+  padding: 1rem;
+  border-radius: 10px 0 0 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.4); /* soft depth shadow */
+  border: 1px solid rgba(255, 255, 255, 0.1); /* subtle border */
+}
+
 
   .nav-links.show {
     display: flex;
