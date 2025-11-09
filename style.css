@@ -241,8 +241,11 @@ footer {
   .nav-links {
     display: none;
     flex-direction: column;
-    background-color: #3b2f2f;
+    background-image:url('https://i.imgur.https://www.transparenttextures.com/patterns/wood-pattern.png/MuX09Rt.jpg');
     position: absolute;
+    color: #f5deb3;
+    background-size: cover;
+    background-repeat: no-repeat;
     top: 100%;
     right: 0;
     width: 200px;
